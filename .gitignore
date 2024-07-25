@@ -1,0 +1,7 @@
+__pycache__/
+.vscode
+.venv/
+tr.py
+tst.py 
+bs.py
+file.html

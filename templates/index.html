@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <title>The List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.7.6/lottie.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/easytimer.js@4.4.0/dist/easytimer.min.js"></script>
+
+    <style>
+        #loading {
+            display: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            top: 0;
+            left: 0;
+            text-align: center;
+            padding-top: 20%;
+            pointer-events: none; /* This line allows clicks to pass through */
+        }
+        #loading .flex {
+            pointer-events: all; /* This line ensures the loading animation itself is interactive if needed */
+        }
+    </style>
+</head>
+<body class="bg-black sm:p-6 lg:p-4">
+    <div id="loading" class="font-bold text-white text-center mt-11 lg:-mt-11 ">
+        <div class="flex flex-col items-center">
+            <div class="flex items-center text-4xl text-gray-200">
+                LOADING BEEG LIST
+            </div>
+            <span class="mt-2 text-xl text-gray-400">DON'T WORRY BOUT SHIT ELSE</span>
+            <div id="loading-animation" class="-z-20 -mt-36 " style="width: 400px; height: 400px;"></div>
+        </div>
+    </div>
+    <a href="{{ url_for('collab') }}" class="fixed top-0 left-0 w-full bg-gradient-to-br from-gray-800 via-violet-800 to-indigo-900 text-white text-center py-2.5 z-50 text-sm hover:from-gray-700 hover:via-indigo-700 hover:to-purple-800 transition duration-300 ease-in-out flex items-center justify-center space-x-2 shadow-xl rounded-md">
+        <span class="font-semibold">Extend the Project</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+    </a>
+    
+    
+
+    <h1 class="text-2xl sm:text-3xl font-extrabold mb-8 lg:mb-4 text-center text-indigo-500 mt-14">FINQEL's</h1>
+   
+    <div id="content" class="space-y-6 lg:space-y-6 max-w-md mx-auto px-3 ">
+        <!-- Content will be loaded here -->
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var loading = document.getElementById('loading');
+            var content = document.getElementById('content');
+            var loadingAnimation = lottie.loadAnimation({
+                container: document.getElementById('loading-animation'),
+                renderer: 'svg',
+                loop: true,
+                autoplay: true,
+                path: '{{ url_for('static', filename='loadin_2.json') }}'
+            });
+
+            loading.style.display = 'block';
+
+            // Function to detect the client's timezone
+            function getClientTimezone() {
+                return Intl.DateTimeFormat().resolvedOptions().timeZone;
+            }
+
+            const timezone = getClientTimezone();
+
+            fetch(`/get_data?timezone=${timezone}`)
+                .then(response => response.json())
+                .then(data => {
+                    loading.style.display = 'none';
+                    let html = '';
+                    for (const key in data) {
+                        const entry = data[key];
+                        console.log(key)
+                        const urlElement = document.createElement('a');
+                        urlElement.href = entry.url;
+                        const hostname = urlElement.hostname;
+                        const hostnameParts = hostname.split('.');
+                        let displayHostname = hostnameParts[0];
+                        if (hostnameParts.length === 3) {
+                            displayHostname = hostnameParts[1];
+                        }
+
+                        const timerId = `timer-${key}`;
+
+                        html += `
+                            <div class="bg-neutral-700 p-3 sm:p-4 rounded-xl shadow-md text-base sm:text-lg flex border border-slate-700">
+                                <div class="flex-none mr-4">
+                                    <a href="${entry.url}" class="relative block rounded-xl overflow-hidden hover:brightness-110 transform hover:scale-105 transition-transform duration-300">
+                                        <img src="${entry.img_url}" class="object-cover rounded-xl h-24 w-24" alt="Uploaded Image">
+                                    </a>
+                                </div>
+                                <div class="flex-grow flex flex-col justify-between">
+                                    <p class="text-blue-200 ">
+                                        <a href="${entry.url}" class="text-violet-400 hover:text-violet-500 uppercase font-extrabold">${displayHostname}</a>
+                                    </p>
+                                    <div class="mt-auto">
+                                        <p class="font-bold text-orange-200">${entry.models.join(' ')}</p>
+                                        <p class="text-violet-200 uppercase text-sm">Next: ${entry.next}
+                                            ${entry.left > 0 ? `<span class="text-green-500 font-semibold" id="${timerId}"></span>` : `<span class="text-green-500 font-bold"></span>`}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    content.innerHTML = html;
+
+                    for (const key in data) {
+                        const entry = data[key];
+                        if (entry.left > 0) {
+                            const timer = new easytimer.Timer();
+                            const timerId = `timer-${key}`;
+                            timer.start({countdown: true, startValues: {seconds: entry.left}});
+                            timer.addEventListener('secondsUpdated', function () {
+                                document.getElementById(timerId).innerText = '-' + timer.getTimeValues().toString();
+                            });
+                            timer.addEventListener('targetAchieved', function () {
+                                document.getElementById(timerId).innerText = 'TIME UP';
+                            });
+                        }
+                    }
+                })
+                .catch(error => {
+                    loading.style.display = 'none';
+                    content.innerHTML = `
+                    <div class="flex items-center justify-center mt-20">
+                      <div class="text-rose-600 font-bold text-3xl text-center">
+                        BEEG ERROR..<br>WORRY BOUT SHIT ELSE BRUDDA
+                      </div>
+                    </div>
+                  `;
+                });
+        });
+    </script>
+</body>
+</html>
