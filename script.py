@@ -1,5 +1,4 @@
-#content-card-info container
-#ASYNCHRONOUS (VERY FAST)
+#ASYNCHRONOUS 
 import asyncio
 import aiohttp
 import requests
