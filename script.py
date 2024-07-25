@@ -141,51 +141,6 @@ if __name__=="__main__":
 
 
 
-# Python's asyncio library requires an event loop to run asynchronous functions.
-
-
-''' #SYNCHRONOUS
-if __name__=="__main__":
-	import asyncio
-	asyncio.run(main())
-	for k,v in dic.items():
-		for kk,vv in v.items():
-			if kk=="models":
-				print(kk, GREEN +str(vv)+RESET)
-			elif kk=="url":
-				print(kk,YELLOW +str(vv)+RESET)
-			else:
-				print(kk,RED +str(vv)+RESET)
-		print('\n')
-import requests
-from bs4 import BeautifulSoup
-
-
-urls = ["https://tour.trueanal.com/", "https://tour.nympho.com/", 
-"https://tour.allanal.com/", "https://tour.swallowed.com/", "https://dirtyauditions.com/","https://tour.analonly.com/" ]
-i=1
-for url in urls:
-	if i==1:
-		cls="content-meta"
-	else:
-		cls="content-models"
-	response = requests.get(url)
-	soup = BeautifulSoup(response.text, 'html.parser')
-	content_models = soup.find(class_=lambda value: value and cls in value)
-	a_tags = content_models.find_all('a')
-	models_text = [a.get_text(strip=True) for a in a_tags]
-	print(i,url,"\n", models_text,"\n")
-	i=i+1
-		
-	'''
-
-
-
-
-
-
-
-
 
 
 
